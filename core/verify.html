@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Le'Vox Core // Verify Scene</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; width: 100%; height: 100%; min-height: 580px; overflow: hidden;
+    background: #141724; color: #f3efe2;
+    font: 12px/1.4 ui-monospace, Consolas, Menlo, monospace;
+    user-select: none;
+  }
+  canvas {
+    position: fixed; inset: 0; width: 100%; height: 100%;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+    cursor: grab;
+  }
+  canvas:active { cursor: grabbing; }
+  #hud {
+    position: fixed; left: 12px; top: 12px; padding: 8px 12px;
+    background: rgba(16, 20, 32, 0.8); border: 1px solid rgba(255, 217, 138, 0.25);
+    border-radius: 7px; pointer-events: none; z-index: 10;
+  }
+  #hud h1 { margin: 0 0 3px; font-size: 12px; color: #ffd98a; }
+  #stats { margin: 0; font-size: 11px; color: #cfd5e6; white-space: pre; }
+  #controls {
+    position: fixed; right: 12px; top: 12px; width: 220px; padding: 10px;
+    background: rgba(16, 20, 32, 0.85); border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 20;
+  }
+  label { display: flex; justify-content: space-between; font-size: 11px; color: #cfd5e6; }
+  input[type="range"] { width: 100%; accent-color: #ffd98a; }
+  select, button {
+    width: 100%; background: #1d2134; color: #f3efe2;
+    border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 5px;
+    padding: 5px 6px; font: 11px ui-monospace, monospace; cursor: pointer;
+  }
+  button:hover { border-color: #ffd98a; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <h1>Le'Vox Core · dist/le-vox.js</h1>
+  <pre id="stats">inicializando...</pre>
+</div>
+<div id="controls">
+  <label><span>Hora do Dia</span><span>Dia → Noite</span></label>
+  <input id="tod" type="range" min="0" max="1" step="0.02" value="0.58" />
+  <label><span>Inclinar Avião (Pitch/Roll)</span></label>
+  <input id="tilt" type="range" min="-0.6" max="0.6" step="0.02" value="0.32" />
+  <label><span>Outline 1px</span></label>
+  <input id="outline" type="range" min="0" max="1" step="0.05" value="0.35" />
+  <label><span>Bayer Dither</span></label>
+  <input id="dither" type="range" min="0" max="1" step="0.05" value="0.55" />
+  <select id="pal">
+    <option value="Níveis (Posterize)">Níveis (Posterize)</option>
+    <option value="Turbo Retro (24)">Turbo Retro (24)</option>
+    <option value="Endesga 16">Endesga 16</option>
+    <option value="Pico-8">Pico-8</option>
+  </select>
+  <button id="btn-dither">Dither: ON</button>
+  <button id="btn-glb">Exportar Cena (.GLB)</button>
+</div>
+
+<script src="../dist/le-vox.js"></script>
+<script>
+(() => {
+  const stats = document.getElementById('stats');
+  let ditherOn = true;
+
+  const studio = Studio.mount(document.getElementById('c'), {
+    world: { w: 144, h: 144, ground: 1, autoTiles: true, tileSize: 48 },
+    assets: {
+      car: { type: 'prefab', prefab: 'coupe', opts: { colors: { body: '#d9383f', stripe: '#ffbe47' } } },
+      plane: { type: 'prefab', prefab: 'airlinerHalf' },
+      house: { type: 'prefab', prefab: 'brickHouse' },
+      lamp: { type: 'prefab', prefab: 'streetLamp' },
+      tree: { type: 'prefab', prefab: 'canopyTree' },
+      palm: { type: 'prefab', prefab: 'palmTree' },
+      crate: { type: 'prefab', prefab: 'crate' },
+      barrel: { type: 'prefab', prefab: 'barrel' },
+    },
+    characters: {
+      walker: { x: 78, y: 84, z: 1, scale: 0.25, visor: true, glowAccent: true }
+    },
+    entities: [
+      { id: 'car1', asset: 'car', x: 70, y: 74, z: 1, rot: -0.25, scale: 0.65 },
+      { id: 'plane1', asset: 'plane', x: 76, y: 54, z: 24, rot: -0.4, pitch: 0.32, roll: 0.22, scale: 0.65, shadow: false },
+      { id: 'house1', asset: 'house', x: 52, y: 38, z: 1, rot: 0, scale: 1 },
+      { id: 'lamp1', asset: 'lamp', x: 48, y: 60, z: 1, rot: -1.57, scale: 1 },
+      { id: 'tree1', asset: 'tree', x: 96, y: 42, z: 1, rot: 0.4, scale: 1, sway: 0.015 },
+      { id: 'palm1', asset: 'palm', x: 102, y: 84, z: 1, rot: 1.1, scale: 1, sway: 0.025 },
+      { id: 'crate1', asset: 'crate', x: 86, y: 66, z: 1, rot: 0.3, scale: 0.7 },
+      { id: 'barrel1', asset: 'barrel', x: 92, y: 70, z: 1, rot: 0, scale: 0.8 },
+    ],
+    lamps: [[48, 65, 29, 48, 1.0, 0.85, 0.55]],
+    blobs: [[70, 74, 6, 14, 0.5], [76, 54, 24, 16, 1]],
+    camera: { mode: 'persp', tx: 72, ty: 68, tz: 8, yaw: 0.78, pitch: 0.42, dist: 64 },
+    lighting: { tod: 0.58 },
+    render: {
+      scale: 3, voxel: true, shadowSteps: 24, aoSamples: 16,
+      dither: { enabled: true, strength: 0.55, levels: 8, outline: 0.35, palette: 'Níveis (Posterize)' }
+    },
+    autoOrbit: true,
+    orbitSpeed: 0.22
+  }, {
+    onUpdate(t, dt, api) {
+      // Walk character in a small circle around the car
+      const cx = 74 + Math.cos(t * 0.7) * 18;
+      const cy = 74 + Math.sin(t * 0.7) * 18;
+      const heading = t * 0.7 + Math.PI / 2;
+      api.moveCharacter('walker', cx, cy, heading, dt);
+      const st = api.engine.stats;
+      stats.textContent = `interno: ${st.iw}×${st.ih}px · instâncias: ${st.instances} · cpu: ${st.cpuMs.toFixed(1)}ms\n` +
+        `atlas: ${(api.atlas.usage() * 100).toFixed(1)}% · pitch/roll 6-DOF + dither 1-pass`;
+    }
+  });
+
+  document.getElementById('tod').oninput = (e) => studio.updateScene({ lighting: { tod: +e.target.value } });
+  document.getElementById('tilt').oninput = (e) => {
+    const v = +e.target.value;
+    studio.updateScene({ entityUpdates: [{ id: 'plane1', pitch: v, roll: v * 0.65 }] });
+  };
+  const syncDither = () => {
+    studio.updateScene({
+      render: {
+        dither: {
+          enabled: ditherOn,
+          strength: +document.getElementById('dither').value,
+          levels: 8,
+          outline: +document.getElementById('outline').value,
+          palette: document.getElementById('pal').value
+        }
+      }
+    });
+  };
+  document.getElementById('outline').oninput = syncDither;
+  document.getElementById('dither').oninput = syncDither;
+  document.getElementById('pal').onchange = syncDither;
+  document.getElementById('btn-dither').onclick = () => {
+    ditherOn = !ditherOn;
+    document.getElementById('btn-dither').textContent = ditherOn ? 'Dither: ON' : 'Dither: OFF';
+    syncDither();
+  };
+  document.getElementById('btn-glb').onclick = () => {
+    Exporters.downloadGLB('levox-verify-scene.glb', studio, { includeGround: false, voxelSize: 0.1 });
+  };
+})();
+</script>
+</body>
+</html>

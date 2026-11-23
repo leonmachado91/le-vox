@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OCEANIC 815 // Bullet-Time Crash Diorama</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 580px;
+    overflow: hidden;
+    background: #101622;
+    color: #f3efe2;
+    font: 12px/1.45 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+    user-select: none;
+  }
+  #c, #post {
+    position: fixed;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 580px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    cursor: grab;
+  }
+  #c:active { cursor: grabbing; }
+  #post { pointer-events: none; z-index: 2; }
+  #wait {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #101622;
+    color: #ffd98a;
+    letter-spacing: 0.08em;
+    z-index: 50;
+  }
+  body.ready #wait { display: none; }
+  #panel {
+    position: fixed;
+    left: 12px;
+    top: 12px;
+    padding: 9px 12px;
+    background: rgba(16, 20, 32, 0.76);
+    border: 1px solid rgba(243, 239, 226, 0.16);
+    border-radius: 7px;
+    backdrop-filter: blur(6px);
+    pointer-events: none;
+    z-index: 10;
+  }
+  #panel h1 {
+    margin: 0 0 4px;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #70e8ff;
+  }
+  #panel h1 span {
+    color: rgba(243, 239, 226, 0.65);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0.03em;
+  }
+  #stats { margin: 0; white-space: pre; color: rgba(243, 239, 226, 0.9); font-size: 11px; }
+  #top-badges {
+    position: fixed;
+    left: 50%;
+    top: 12px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    pointer-events: none;
+    z-index: 10;
+  }
+  #badge, #time-badge {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    border-radius: 5px;
+  }
+  #badge {
+    color: #1c1a14;
+    background: #ffd98a;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  #badge.on { opacity: 0.92; }
+  #time-badge {
+    color: #e6f8ff;
+    background: rgba(24, 52, 82, 0.85);
+    border: 1px solid rgba(112, 232, 255, 0.4);
+  }
+  #controls {
+    position: fixed;
+    right: 12px;
+    top: 12px;
+    width: 248px;
+    padding: 10px 11px;
+    background: rgba(16, 20, 32, 0.86);
+    border: 1px solid rgba(243, 239, 226, 0.16);
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    z-index: 20;
+  }
+  .row { display: flex; flex-direction: column; gap: 3px; }
+  .row label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #cfd5e6;
+  }
+  input[type="range"] { width: 100%; accent-color: #70e8ff; cursor: pointer; }
+  select {
+    width: 100%;
+    background: #1b2236;
+    color: #f3efe2;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 5px;
+    padding: 4px 6px;
+    font: 11px ui-monospace, monospace;
+  }
+  .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .cams { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  button {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f3efe2;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 5px;
+    padding: 5px 6px;
+    font: 11px ui-monospace, monospace;
+    cursor: pointer;
+  }
+  button:hover { background: rgba(112, 232, 255, 0.18); border-color: #70e8ff; }
+  button.accent { background: rgba(112, 232, 255, 0.16); border-color: rgba(112, 232, 255, 0.45); color: #9beeff; }
+  button.warn { background: rgba(255, 123, 36, 0.22); border-color: rgba(255, 123, 36, 0.55); color: #ffc288; }
+  #keys {
+    position: fixed;
+    left: 12px;
+    bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    pointer-events: none;
+    z-index: 10;
+  }
+  #keys span {
+    background: rgba(16, 20, 32, 0.74);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    color: #cfd5e6;
+  }
+  #keys b { color: #70e8ff; margin-right: 4px; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<canvas id="post"></canvas>
+<div id="wait">congelando voo Oceanic 815 no ar...</div>
+
+<div id="top-badges">
+  <div id="time-badge">BULLET TIME</div>
+  <div id="badge">VOXEL MODE</div>
+</div>
+
+<div id="panel">
+  <h1>OCEANIC 815 <span>· Mid-Air Breakup</span></h1>
+  <pre id="stats"></pre>
+</div>
+
+<div id="controls">
+  <div class="row">
+    <label><span>Fluxo do Tempo</span><span id="lbl-time">0.12×</span></label>
+    <input id="ctrl-time" type="range" min="-0.5" max="1.2" step="0.02" value="0.12" />
+  </div>
+  <div class="row">
+    <label><span>Separação da Queda (E)</span><span id="lbl-breakup">0%</span></label>
+    <input id="ctrl-breakup" type="range" min="0" max="1" step="0.01" value="0" />
+  </div>
+  <div class="row">
+    <label><span>Hora / Tempestade</span><span>Dia → Noite</span></label>
+    <input id="ctrl-tod" type="range" min="0" max="1" step="0.02" value="0.56" />
+  </div>
+  <div class="row">
+    <label><span>Pixel Scale (R)</span><span>1× – 5×</span></label>
+    <input id="ctrl-res" type="range" min="1" max="5" step="1" value="3" />
+  </div>
+  <div class="row">
+    <label><span>Paleta / Bayer Dither</span><span id="lbl-dither">0.55</span></label>
+    <select id="ctrl-pal"></select>
+    <input id="ctrl-dither" type="range" min="0" max="1" step="0.05" value="0.55" />
+  </div>
+  <div class="row">
+    <label><span>Câmeras (1–4)</span></label>
+    <div class="cams">
+      <button id="cam-1">1.Geral</button>
+      <button id="cam-2">2.Rasgo</button>
+      <button id="cam-3">3.Fogo</button>
+      <button id="cam-4">4.Praia</button>
+    </div>
+  </div>
+  <div class="grid-btns">
+    <button id="btn-freeze" class="accent">Congelar Tempo</button>
+    <button id="btn-fall" class="warn">Queda Animada (E)</button>
+    <button id="btn-xray">Raio-X Cabine (K)</button>
+    <button id="btn-lightning">Relâmpago (L)</button>
+    <button id="btn-print">Imprimir 3D (Z)</button>
+    <button id="btn-orbit">Girar Câm: ON</button>
+    <button id="btn-voxel">Voxel: ON</button>
+    <button id="btn-dither">Dither: ON</button>
+  </div>
+</div>
+
+<div id="keys">
+  <span><b>Espaço</b>congelar tempo</span>
+  <span><b>E</b>queda animada</span>
+  <span><b>K</b>raio-x cabine</span>
+  <span><b>L</b>relâmpago</span>
+  <span><b>1–4</b>câmeras</span>
+  <span><b>D</b>dither</span>
+  <span><b>V</b>voxel/slices</span>
+</div>
+
+<script src="../../core/art.js"></script>
+<script src="../../core/engine.js"></script>
+<script src="../turbo86-garage/post_dither.js"></script>
+<script src="lost_scene.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

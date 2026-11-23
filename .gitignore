@@ -1,0 +1,10 @@
+# Upstream reference clones kept locally, not mirrored in this repo
+sprite-stack-engine/
+sprite-stacking/
+AASpriteStacker/
+pixel3d-kit/
+
+# OS / Editor / Node artifacts
+.DS_Store
+node_modules/
+*.log

@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NEON SECTOR // Isometric Twin-Stick Shooter</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 580px;
+    overflow: hidden;
+    background: #0d101b;
+    color: #f3efe2;
+    font: 12px/1.4 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+    user-select: none;
+  }
+  #c, #post {
+    position: fixed;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 580px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    cursor: crosshair;
+  }
+  #post { pointer-events: none; z-index: 2; }
+  #wait {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0d101b;
+    color: #5ef5ff;
+    letter-spacing: 0.1em;
+    z-index: 50;
+  }
+  body.ready #wait { display: none; }
+
+  #hud-left {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    width: 230px;
+    padding: 10px 12px;
+    background: rgba(13, 16, 28, 0.82);
+    border: 1px solid rgba(94, 245, 255, 0.25);
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    z-index: 15;
+    pointer-events: none;
+  }
+  .hud-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .hud-title strong { color: #5ef5ff; letter-spacing: 0.12em; }
+  #hud-wave { color: #ffd98a; font-weight: 700; }
+  .bar-wrap {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  #hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #ff4769, #47f589); transition: width 0.1s; }
+  #dash-fill { height: 100%; width: 100%; background: #5ef5ff; }
+  .hud-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #cfd5e6;
+    margin-bottom: 6px;
+  }
+  #hud-combo { color: #ffe052; font-weight: 700; }
+  #hud-over {
+    display: none;
+    margin-top: 4px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 224, 82, 0.2);
+    border: 1px solid #ffe052;
+    color: #ffe052;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  #hud-right {
+    position: fixed;
+    right: 14px;
+    top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 20;
+  }
+  .btn-row { display: flex; gap: 5px; }
+  button {
+    background: rgba(13, 16, 28, 0.85);
+    color: #e6ecf7;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 6px;
+    padding: 5px 9px;
+    font: 11px ui-monospace, monospace;
+    cursor: pointer;
+  }
+  button:hover { border-color: #5ef5ff; color: #5ef5ff; }
+  button.active {
+    background: rgba(94, 245, 255, 0.18);
+    border-color: #5ef5ff;
+    color: #5ef5ff;
+    font-weight: 700;
+  }
+
+  #weapons {
+    position: fixed;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 20;
+  }
+
+  #keys {
+    position: fixed;
+    left: 14px;
+    bottom: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    max-width: 340px;
+    pointer-events: none;
+    z-index: 10;
+  }
+  #keys span {
+    background: rgba(13, 16, 28, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    color: #b8c2d8;
+  }
+  #keys b { color: #5ef5ff; margin-right: 3px; }
+
+  #gameover {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(10, 12, 22, 0.78);
+    backdrop-filter: blur(4px);
+    z-index: 40;
+  }
+  #gameover.show { display: flex; }
+  #gameover h2 { margin: 0; font-size: 26px; letter-spacing: 0.15em; color: #ff4769; }
+  #final-score { font-size: 14px; color: #ffd98a; }
+  #btn-restart {
+    padding: 9px 18px;
+    font-size: 13px;
+    background: #5ef5ff;
+    color: #0d101b;
+    border: none;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<canvas id="post"></canvas>
+<div id="wait">carregando arena NEON SECTOR...</div>
+
+<div id="hud-left">
+  <div class="hud-title">
+    <strong>NEON SECTOR</strong>
+    <span id="hud-wave">ONDA 1</span>
+  </div>
+  <div class="hud-meta"><span>HP <b id="hp-txt">100/100</b></span><span id="hud-score">0</span></div>
+  <div class="bar-wrap"><div id="hp-fill"></div></div>
+  <div class="hud-meta"><span>DASH (Espaço)</span><span id="hud-combo"></span></div>
+  <div class="bar-wrap" style="height:5px;"><div id="dash-fill"></div></div>
+  <div id="hud-over">OVERDRIVE ATIVO! (2× TIRO)</div>
+</div>
+
+<div id="hud-right">
+  <div class="btn-row">
+    <button id="btn-cam">Câm: Orto</button>
+    <button id="btn-dither">Dither: OFF</button>
+    <button id="btn-mute">Som: ON</button>
+  </div>
+</div>
+
+<div id="weapons">
+  <button id="wpn-1" class="active">1 · Pulse Rifle</button>
+  <button id="wpn-2">2 · Shotgun</button>
+  <button id="wpn-3">3 · Plasma</button>
+</div>
+
+<div id="keys">
+  <span><b>WASD</b>mover</span>
+  <span><b>Mouse</b>mirar/atirar</span>
+  <span><b>Espaço</b>dash</span>
+  <span><b>1-3</b>armas</span>
+  <span><b>Q/E</b>girar câm</span>
+  <span><b>R</b>pixel scale</span>
+</div>
+
+<div id="gameover">
+  <h2>GAME OVER</h2>
+  <div id="final-score"></div>
+  <button id="btn-restart">Jogar Novamente (Enter)</button>
+</div>
+
+<script src="../../core/art.js"></script>
+<script src="../../core/rig.js"></script>
+<script src="../../core/engine.js"></script>
+<script src="../turbo86-garage/post_dither.js"></script>
+<script src="arena_scene.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
