@@ -4,6 +4,10 @@ sprite-stacking/
 AASpriteStacker/
 pixel3d-kit/
 
+# Local agent planning notes & generated duplicate skill output
+.agents/plans/
+dist/le-vox-skill/
+
 # OS / Editor / Node artifacts
 .DS_Store
 node_modules/

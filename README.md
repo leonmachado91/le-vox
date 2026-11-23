@@ -38,7 +38,7 @@ Se você usa CLI compatível com o padrão Agent Skills:
 npx skills add leonmachado91/le-vox
 ```
 
-Ou copie a pasta pronta **`dist/le-vox-skill/`** (ou `.agents/skills/le-vox/`) para dentro da pasta de skills do seu agente (ex.: `~/.hermes/skills/le-vox/` ou `~/.claude/skills/le-vox/`), mantendo o nome `le-vox`.
+Ou copie a pasta pronta **`.agents/skills/le-vox/`** para dentro da pasta de skills do seu agente (ex.: `~/.hermes/skills/le-vox/` ou `~/.claude/skills/le-vox/`), mantendo o nome `le-vox`.
 
 > A pasta da skill já vem **100% independente**: ela traz o motor inteiro em um único arquivo (`assets/le-vox.js`), o manual (`SKILL.md` + `references/scene-schema.md`) e o script de fatiar imagens (`scripts/views_to_slices.py`). Seu agente consegue criar projetos em **qualquer pasta do seu computador**, sem depender deste repositório.
 
@@ -68,7 +68,7 @@ Ou copie a pasta pronta **`dist/le-vox-skill/`** (ou `.agents/skills/le-vox/`) p
 * `core/` — Motor WebGL2 modular (`engine.js`, `art.js`, `rig.js`, `dsl.js`, `importers.js`, `exporters.js`, `studio.js`).
 * `prefabs/` — Modelos prontos e recoloríveis (carro `coupe`, avião `airlinerHalf`, casa `brickHouse`, poste, árvores, pedras, estação de PC, caixas, barris e personagem `humanoid`).
 * `dist/le-vox.js` — Arquivo único compilado (~123 KB) com tudo junto, zero dependências.
-* `dist/le-vox-skill/` — Pasta pronta da Skill para copiar ou distribuir.
+* `.agents/skills/le-vox/` — Pasta pronta da Skill (descoberta automaticamente pelo `npx skills add` ou para copiar manualmente).
 * `scripts/` — `build_dist.mjs` (empacota tudo) e `views_to_slices.py` (converte sprites 2D de 4 vistas em fatias empilháveis usando Python + Pillow/NumPy).
 * `tests/` — Testes automatizados (`node --test tests/*.mjs`).
 
