@@ -15,11 +15,6 @@ O **Le'Vox** é um motor gráfico leve e uma **Skill pronta para agentes de IA**
 | ![Garagem TURBO-86](docs/screenshots/turbo86-garage.png) | ![Queda Oceanic 815](docs/screenshots/lost-crash.png) |
 | Carro retrô, garagem oca com corte de teto, postes com luz noturna e efeito de "impressora 3D" camada por camada. | Avião partido ao meio congelado no ar com rotação 3D (`pitch`/`roll`), fogo animado e controle de câmera/tempo. |
 
-| NEON SECTOR (Mini-jogo Isométrico de Tiro) | Le'Vox Core (Motor Unificado + Export .GLB) |
-| :---: | :---: |
-| ![NEON SECTOR](docs/screenshots/neon-arena.png) | ![Le'Vox Core Verify](docs/screenshots/verify-studio.png) |
-| Jogo jogável completo (`WASD` + mira 360° no mouse, 3 armas, barris explosivos, ondas de inimigos e áudio procedural). | Cena declarativa usando o arquivo único `dist/le-vox.js` com personagem animado, dither, outline 1px e botão de exportar `.GLB`. |
-
 ---
 
 ## Como funciona (sem complicação)
